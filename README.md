@@ -1,1 +1,1 @@
-# drt-js-sdk-data-api-client
+# Data API Client for JavaScript

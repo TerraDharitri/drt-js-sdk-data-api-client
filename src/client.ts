@@ -1,10 +1,11 @@
 import axios, { AxiosRequestConfig } from 'axios';
 import Agent, { HttpsAgent } from 'agentkeepalive';
 import { NativeAuthSigner, DataApiResponseFormatter, AccessToken } from './utils';
-import { DataApiAggregateResponse, DataApiHistoricalResponse, DataApiMostUsedResponse, DataApiValueResponse } from './responses';
-import { DataApiAggregateQuery, DataApiHistoricalQuery, DataApiBaseQuery, DataApiLatestQuoteQuery, DataApiMostUsedQuery } from './queries';
-import { DataApiClientConfig } from './entities';
+import { DataApiAggregateResponse, DataApiHistoricalResponse, DataApiMostUsedResponse, DataApiPortfolioResponse, DataApiTradingPairsResponse, DataApiValueResponse } from './responses';
+import { DataApiAggregateQuery, DataApiHistoricalQuery, DataApiBaseQuery, DataApiLatestQuoteQuery, DataApiMostUsedQuery, DataApiTradingPairsQuery, DataApiPortfolioQuery } from './queries';
+import { DataApiClientConfig, DataApiError, NetworkError } from './entities';
 import { DataApiValueQuery } from './queries/value.query';
+import { CLIENT_VERSION } from './version';
 
 export class DataApiClient {
   private url!: string;
@@ -35,33 +36,36 @@ export class DataApiClient {
       .then(DataApiResponseFormatter.buildMostUsedResponse);
   }
 
+  public async executeTradingPairsQuery(query: DataApiTradingPairsQuery): Promise<DataApiTradingPairsResponse[]> {
+    return await this.executeQuery(query)
+      .then(DataApiResponseFormatter.buildTradingPairsResponse);
+  }
+
+  public async executePortfolioQuery(query: DataApiPortfolioQuery): Promise<DataApiPortfolioResponse[]> {
+    return await this.executeQuery(query)
+      .then(DataApiResponseFormatter.buildPortfolioResponse);
+  }
+
   private async executeQuery(query: DataApiBaseQuery): Promise<DataApiValueResponse | DataApiAggregateResponse | DataApiHistoricalResponse[] | undefined> {
     const response = await this.executeRawQuery(query.toJson());
     return DataApiResponseFormatter.formatResponse(query.responsePath, response);
   }
 
-  public async executeRawQuery(body: { query: string, variables: Record<string, any> }): Promise<any> {
-    try {
-      const response = await this.post(body);
-      return  response;
-    } catch (error) {
-      // TODO format error
-      throw error;
-    }
-  }
-
-  private async post(payload: any): Promise<any> {
+  private async executeRawQuery(body: { query: string, variables: Record<string, any> }): Promise<any> {
     try {
       const config = await this.getConfig();
-      const { data } = await axios.post(this.url, payload, config);
+      const { data } = await axios.post(this.url, body, config);
 
-      if(data.errors) {
-        throw data.errors;
+      if (data.errors) {
+        throw new DataApiError(data.errors);
       }
-      
+
       return data.data;
-    } catch (error) {
-      throw error;
+    } catch (error: DataApiError | any) {
+      if (error instanceof DataApiError) {
+        throw error;
+      }
+      throw new NetworkError(error);
     }
   }
 
@@ -85,6 +89,7 @@ export class DataApiClient {
     };
 
     this.nativeAuthSigner = new NativeAuthSigner({
+      origin: config.origin,
       apiUrl: config.dharitrIApiUrl,
       signerPrivateKey: config.signerPrivateKey,
     });
@@ -97,6 +102,7 @@ export class DataApiClient {
       ...this.config,
       headers: {
         Authorization: `Bearer ${accessToken.token}`,
+        'X-Data-Api-Client-Version': CLIENT_VERSION,
       },
       validateStatus: function () {
         return true;

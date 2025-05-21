@@ -2,7 +2,7 @@ name: Check package-lock.json
 
 on:
   pull_request:
-    branches: [main, development]
+    branches: [main, development, feature/**]
   workflow_dispatch:
 
 jobs:
@@ -13,18 +13,26 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
           node-version: 18.x
 
-      - name: Copy package-lock.json
+      - name: Cache npm modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-18-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-18-
+
+      - name: Copy package-lock.json file
         run: cp package-lock.json package-lock-copy.json
 
-      - name: Remove original package-lock.json
+      - name: Remove package-lock.json file
         run: rm -f package-lock.json
 
-      - name: Reinstall dependencies
+      - name: Run npm install
         run: npm install
 
-      - name: Compare old and new package-lock.json
+      - name: Compare old package-lock with generated package-lock
         run: cmp package-lock.json package-lock-copy.json

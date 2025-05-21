@@ -6,7 +6,7 @@ export interface KeepAliveConfig {
 }
 
 export interface DataApiClientConfig {
-  host: string;
+  origin: string;
   dataApiUrl: string;
   dharitrIApiUrl: string;
   signerPrivateKey: string;

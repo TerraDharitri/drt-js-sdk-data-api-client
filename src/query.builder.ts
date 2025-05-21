@@ -5,10 +5,12 @@ import {
   DataApiDCDTsQueryBuilder,
   DataApiNetworkQueryBuilder,
   DataApiNFTsQueryBuilder,
+  DataApiPortfolioQueryBuilder,
   DataApiQuotesQueryBuilder,
   DataApiScResultsQueryBuilder,
   DataApiStakingQueryBuilder,
   DataApiTokensQueryBuilder,
+  DataApiTradingQueryBuilder,
   DataApiTransactionsQueryBuilder,
   DataApiTransfersQueryBuilder,
   DataApiDharitriXAnalyticsQueryBuilder,
@@ -37,6 +39,10 @@ export class DataApiQueryBuilder extends DataApiBaseQuery {
     return new DataApiNFTsQueryBuilder();
   }
 
+  static createPortfolioQuery(): DataApiPortfolioQueryBuilder {
+    return new DataApiPortfolioQueryBuilder();
+  }
+
   static createQuotesQuery(): DataApiQuotesQueryBuilder {
     return new DataApiQuotesQueryBuilder();
   }
@@ -51,6 +57,10 @@ export class DataApiQueryBuilder extends DataApiBaseQuery {
 
   static createTokensQuery(): DataApiTokensQueryBuilder {
     return new DataApiTokensQueryBuilder();
+  }
+
+  static createTradingQuery(): DataApiTradingQueryBuilder {
+    return new DataApiTradingQueryBuilder();
   }
 
   static createTransactionsQuery(): DataApiTransactionsQueryBuilder {

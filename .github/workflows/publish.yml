@@ -9,29 +9,39 @@ permissions:
 jobs:
   common:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - name: Checkout source
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: 18.x
           registry-url: https://registry.npmjs.org/
-          cache-dependency-path: ./packages/common/package-lock.json
+          cache: 'npm'
+          # Optional: You can comment this out if it causes issues
+          # cache-dependency-path: ./packages/common/package-lock.json
 
-      - run: npm ci
+      - name: Install dependencies
+        working-directory: ./packages/common
+        run: npm ci
 
-      - run: npm run build
+      - name: Build package
+        working-directory: ./packages/common
+        run: npm run build
 
-      - name: Create release
+      - name: Create GitHub release
+        working-directory: ./packages/common
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo " - [npmjs](https://www.npmjs.com/package/@terradharitri/drtjs-data-api-client)" >> notes.txt
-          echo "" >> notes.txt
-
+          echo " - [npmjs](https://www.npmjs.com/package/@terradharitri/drtjs-data-api-client)" > notes.txt
           RELEASE_TAG=v$(node -p "require('./package.json').version")
           gh release create $RELEASE_TAG --target=$GITHUB_SHA --title="$RELEASE_TAG" --generate-notes --notes-file=notes.txt
 
-      - name: Publish to npmjs
+      - name: Publish to npm
+        working-directory: ./packages/common
         env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --access=public

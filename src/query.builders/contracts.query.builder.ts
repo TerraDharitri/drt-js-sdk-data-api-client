@@ -27,14 +27,13 @@ export class DataApiContractsQueryBuilder extends DataApiBaseQueryBuilder {
     return new DataApiMostUsedQueryBuilder(this);
   }
 
-  public mostUsed24h(top: number, onlyVerified: boolean = false): DataApiMostUsedQueryBuilder {
+  public mostUsed24h(top: number): DataApiMostUsedQueryBuilder {
     this.addToPath({
       name: 'mostUsed24h',
       args: [
         { name: 'top', type: 'Int!', value: top },
-        { name: 'onlyVerified', type: 'Boolean', value: onlyVerified },
       ],
-      hasQuery: false,
+      hasQuery: true,
     });
     return new DataApiMostUsedQueryBuilder(this);
   }

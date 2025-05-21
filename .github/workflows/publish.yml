@@ -20,7 +20,7 @@ jobs:
           node-version: 18.x
           registry-url: https://registry.npmjs.org/
           cache: 'npm'
-          # Optional: You can comment this out if it causes issues
+          # Optional: Uncomment if you are sure the path exists
           # cache-dependency-path: ./packages/common/package-lock.json
 
       - name: Install dependencies

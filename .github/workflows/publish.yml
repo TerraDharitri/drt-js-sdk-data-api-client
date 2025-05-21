@@ -1,0 +1,47 @@
+name: Publish
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  common:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18.x
+          registry-url: https://registry.npmjs.org/
+          cache: 'npm'
+          # Optional: Uncomment if you are sure the path exists
+          # cache-dependency-path: ./packages/common/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./packages/common
+        run: npm ci
+
+      - name: Build package
+        working-directory: ./packages/common
+        run: npm run build
+
+      - name: Create GitHub release
+        working-directory: ./packages/common
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo " - [npmjs](https://www.npmjs.com/package/@terradharitri/drtjs-data-api-client)" > notes.txt
+          RELEASE_TAG=v$(node -p "require('./package.json').version")
+          gh release create $RELEASE_TAG --target=$GITHUB_SHA --title="$RELEASE_TAG" --generate-notes --notes-file=notes.txt
+
+      - name: Publish to npm
+        working-directory: ./packages/common
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access=public

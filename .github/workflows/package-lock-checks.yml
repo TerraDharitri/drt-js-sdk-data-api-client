@@ -1,0 +1,30 @@
+name: Check package-lock.json
+
+on:
+  pull_request:
+    branches: [main, development]
+  workflow_dispatch:
+
+jobs:
+  compare-package-lock:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18.x
+
+      - name: Copy package-lock.json
+        run: cp package-lock.json package-lock-copy.json
+
+      - name: Remove original package-lock.json
+        run: rm -f package-lock.json
+
+      - name: Reinstall dependencies
+        run: npm install
+
+      - name: Compare old and new package-lock.json
+        run: cmp package-lock.json package-lock-copy.json
